@@ -13,16 +13,16 @@ st.set_page_config(layout="wide")
 
 with st.spinner('Loading data...'):
     time.sleep(0.2)
-    wvAng   = np.load('./combined_fts_v5June2022_wavelength_angstrom.npy')
-    fts_obs = np.load('./combined_fts_v5June2022_observed_spectrum.npy')
-    fts_atm = np.load('./combined_fts_v5June2022_atm_absorption.npy')
+    wvAng   = np.load('./combined_fts_v5June2022_wavelength_angstrom.npy').astype(float)
+    fts_obs = np.load('./combined_fts_v5June2022_observed_spectrum.npy').astype(float)
+    fts_atm = np.load('./combined_fts_v5June2022_atm_absorption.npy').astype(float)
     fts_cor = np.clip(fts_obs/fts_atm,0.,1.05)
 
 st.sidebar.header("Solar Atlas Plotting")
 
-wvCen = st.sidebar.number_input(r"Center Wavelength [Angstrom]",min_value = wvAng.min(),max_value = wvAng.max(),value = 6563.)
+wvCen = st.sidebar.number_input(r"Center Wavelength [Angstrom]",min_value = wvAng.min(),max_value = wvAng.max(),value = 6563.,step=1.)
 maxRange = np.min(np.array([wvCen - wvAng.min(),wvAng.max()-wvCen]))
-wvRange = st.sidebar.number_input(r"Range [Angstrom]",min_value = 1.,max_value = maxRange,value = 10.)
+wvRange = st.sidebar.number_input(r"Range [Angstrom]",min_value = 1.,max_value = maxRange,value = 10.,step = 1.)
 
 st.sidebar.markdown(
 """
