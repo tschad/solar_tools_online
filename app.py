@@ -2,7 +2,6 @@
 # https://blog.esciencecenter.nl/forget-about-jupyter-notebooks-showcase-your-research-using-dashboards-5d13451ba374
 
 # Also works with most supported chart types
-import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 import time
