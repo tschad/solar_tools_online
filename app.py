@@ -42,15 +42,10 @@ Tom Schad [www.github.com/tschad]
 
 st.markdown(
     """
-# Solar Spectrum Plotter
+# Solar and Telluric Reference Spectra Plotter
 
-[Bokeh](https://docs.bokeh.org/en/latest/) is an interactive visualization library for modern web
-browsers. Bokeh has an extensive
-[quickstart guide](https://docs.bokeh.org/en/latest/docs/user_guide/quickstart.html), a large
-[gallery of examples](https://docs.bokeh.org/en/latest/docs/gallery.html#gallery) and an extensive
-[reference guide](https://docs.bokeh.org/en/latest/docs/reference.html#refguide)
+Welcome.
 
-Temporary.  The FTS spectrum 
 """
 )
 
