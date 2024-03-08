@@ -10,18 +10,46 @@ from bokeh.models import HoverTool
 
 st.set_page_config(layout="wide")
 
+## LOAD SOLAR ATLAS
+def vac2air(wave_vac):
+    """ Converts wavelengths from vacuum to air-equivalent """
+    wave_air = np.copy(wave_vac)
+    ww  = (wave_vac >= 2000) 
+    sigma2 = (1e4 / wave_vac[ww])**2 
+    n = 1 + 0.0000834254 + 0.02406147 / (130 - sigma2) + 0.00015998 / (38.9 - sigma2)
+    wave_air[ww] = wave_vac[ww] / n
+    return wave_air
+
 with st.spinner('Loading data...'):
     time.sleep(0.2)
-    wvAng   = np.load('./combined_fts_v5June2022_wavelength_angstrom.npy').astype(float)
-    fts_obs = np.load('./combined_fts_v5June2022_observed_spectrum.npy').astype(float)
-    fts_atm = np.load('./combined_fts_v5June2022_atm_absorption.npy').astype(float)
-    fts_cor = np.clip(fts_obs/fts_atm,0.,1.05)
+    ## Telluric synthetic atlas
+    wvAng  = np.load('./telluric_atlas_mainMol_USstd_wv_air_angstrom_v20240307.npy').astype(float)
+    spTell = np.load('./telluric_atlas_mainMol_USstd_CO2_416ppm-Base_3km-PWV_3__mm-Airmass_1___v20240307.npy').astype(float)
+    ## Disk Center TOON Spectra 
+    dc = np.loadtxt('./solar_merged_20200720_600_33300_000.out',skiprows =3)  ## disk center
+    dcwv = vac2air(1e7/dc[:,0]*10)[::-1]  #/ 10.
+    dcsp = dc[:,1][::-1]  
+    ## Disk Center TOON Spectra 
+    dc = np.loadtxt('./solar_merged_20200720_600_33300_100.out',skiprows =3)  ## disk integ -- 100
+    diwv = vac2air(1e7/dc[:,0]*10)[::-1]  #/ 10.
+    disp = dc[:,1][::-1]  
+    ## Neckel labs 
+    dcen = np.load('./Neckel_Labs/neckel_labs_1984_disk_center_atlas.npy') 
+    neckel_labs_wv_diskcent = dcen[:,0] 
+    neckel_labs_Inorm_diskcenter = dcen[:,1]/dcen[:,2]
+
+    ## Neckel labs 
+    dcen = np.load('./Neckel_Labs/neckel_labs_1984_disk_integated_atlas.npy')
+    neckel_labs_wv_diskint = dcen[:,0] 
+    neckel_labs_Inorm_diskint = dcen[:,1]/dcen[:,2]
+
+
 
 st.sidebar.header("Solar Atlas Plotting")
 
-wvCen = st.sidebar.number_input(r"Center Wavelength [Angstrom]",min_value = wvAng.min(),max_value = wvAng.max(),value = 6563.,step=1.)
+wvCen = st.sidebar.number_input(r"Center Wavelength [Angstrom]",min_value = wvAng.min(),max_value = wvAng.max(),value = 6302.,step=1.)
 maxRange = np.min(np.array([wvCen - wvAng.min(),wvAng.max()-wvCen]))
-wvRange = st.sidebar.number_input(r"Range [Angstrom]",min_value = 1.,max_value = maxRange,value = 10.,step = 1.)
+wvRange = st.sidebar.number_input(r"Range [Angstrom]",min_value = 1.,max_value = maxRange,value = wvCen/1000.,step = 1.)
 
 st.sidebar.markdown(
 """
@@ -44,7 +72,9 @@ st.markdown(
     """
 # Solar and Telluric Reference Spectra Plotter
 
-Welcome.
+Welcome.  This is a simple reference spectrum plotter for solar and telluric spectra. 
+
+Telluric spectra from  https://github.com/tschad/dkist_telluric_atlas
 
 """
 )
@@ -58,9 +88,12 @@ p = figure(sizing_mode="stretch_width", height=400,
 
 wvInt = np.linspace(wvCen-wvRange/2.,wvCen+wvRange/2.,10000)
 
-p.line(wvInt,np.interp(wvInt,wvAng,fts_obs),legend_label='Observed', line_width=2,color = 'green')
-p.line(wvInt,np.interp(wvInt,wvAng,fts_atm),legend_label='Telluric', line_width=2,color = 'orange')
-p.line(wvInt,np.interp(wvInt,wvAng,fts_cor) ,legend_label='Corrected', line_width=2,color = 'black')
+p.line(wvInt,np.interp(wvInt,wvAng,spTell),legend_label='Synthetic Telluric', line_width=2,color = 'green')
+p.line(wvInt,np.interp(wvInt,dcwv,dcsp),legend_label='Toon Disk Center Atlas', line_width=2,color = 'blue')
+p.line(wvInt,np.interp(wvInt,diwv,disp),legend_label='Toon Disk Integ', line_width=2,color = 'black')
+p.line(wvInt,np.interp(wvInt,neckel_labs_wv_diskcent,neckel_labs_Inorm_diskcenter),legend_label='Neckel Labs Disk Center', line_width=2,color = 'black')
+p.line(wvInt,np.interp(wvInt,neckel_labs_wv_diskint,neckel_labs_Inorm_diskint),legend_label='Neckel Labs Disk Integrated', line_width=2,color = 'black')
+
 
 p.add_tools(HoverTool(tooltips="y: @y, x: @x", mode="vline"))
 
