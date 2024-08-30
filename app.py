@@ -33,11 +33,11 @@ def load_toon_atlas():
     ## Telluric synthetic atlas
     ## Disk Center TOON Spectra 
     dc = np.loadtxt('./solar_merged_20200720_600_33300_000.out',skiprows =3)  ## disk center
-    dcwv = vac2air(1e7/dc[:,0]*10)[::-1]  #/ 10.
+    dcwv = vac2air(1e8/dc[:,0])[::-1]  #/ 10.  ## into angstrom 
     dcsp = dc[:,1][::-1]  
     ## Disk Center TOON Spectra 
     dc = np.loadtxt('./solar_merged_20200720_600_33300_100.out',skiprows =3)  ## disk integ -- 100
-    diwv = vac2air(1e7/dc[:,0]*10)[::-1]  #/ 10.
+    diwv = vac2air(1e7/dc[:,0]*10)[::-1]  #/ 10
     disp = dc[:,1][::-1]  
     return dcwv,dcsp,diwv,disp 
 
