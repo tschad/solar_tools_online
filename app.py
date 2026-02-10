@@ -3,9 +3,10 @@ from pathlib import Path
 
 import numpy as np
 import streamlit as st
-from bokeh.models import HoverTool, ColumnDataSource
+from bokeh.models import HoverTool, ColumnDataSource, BoxZoomTool, PanTool, WheelZoomTool, ResetTool, SaveTool
 from bokeh.plotting import figure
 from streamlit_bokeh import streamlit_bokeh  # pip install streamlit-bokeh
+from streamlit_javascript import st_javascript  # pip install streamlit-javascript
 
 # ----------------------------
 # Page config
@@ -205,12 +206,12 @@ wvRange = st.sidebar.number_input(
     step=1.0,
 )
 
-npts = 10000
-
 st.sidebar.markdown(
     """
 ## About this app
 Used for plotting different spectral atlases relative to optical/infrared observations of the Sun.
+
+Selected range is interpolated to 25000 points for memory reasons
 
 ## Data Sources
 NSO FTS
@@ -232,32 +233,48 @@ TBD
 # ----------------------------
 # Plot
 # ----------------------------
+# Explicit tools so we can make box-zoom x-only and set defaults
+pan = PanTool(dimensions="width")
+wheel = WheelZoomTool(dimensions="width")
+boxx = BoxZoomTool(dimensions="width")  # x-only box zoom
+reset = ResetTool()
+save = SaveTool()
+
 p = figure(
-    sizing_mode="stretch_width",
-    height=260,
+    sizing_mode="scale_width",
+    aspect_ratio=1.6,
+    height=300,
+    min_height=250,
+    max_height=800,
     title="Solar Spectrum",
     x_axis_label="Wavelength [angstrom]",
     y_axis_label="Intensity (normalized)",
-    tools="pan,wheel_zoom,box_zoom,reset,save",
-    active_scroll="wheel_zoom",
+    tools=[pan, wheel, boxx, reset, save],
 )
+
+# Make click-drag do x-only box zoom by default
+p.toolbar.active_drag = boxx
+
+# Keep wheel zoom active on scroll
+p.toolbar.active_scroll = wheel
 
 colors = apply_axes_and_grid_style(p, theme_base)
 
 wv_lo = wvCen - wvRange / 2.0
 wv_hi = wvCen + wvRange / 2.0
+
+npts = 25000 
+
 wvInt = np.linspace(wv_lo, wv_hi, int(npts))
 
 y_obs = np.interp(wvInt, wvAng, fts_obs)
 y_atm = np.interp(wvInt, wvAng, fts_atm)
 y_cor = np.interp(wvInt, wvAng, fts_cor)
 
-# --- Observed: use a ColumnDataSource so hover is clean and only follows this curve
+# Observed: ColumnDataSource so hover attaches only to this curve
 obs_src = ColumnDataSource(data={"x": wvInt, "y": y_obs})
 
-# Draw observed and keep renderer handle
 if theme_base == "dark":
-    # halo + main (both from the same source); hover will attach ONLY to the main renderer
     p.line("x", "y", source=obs_src, line_width=5.0, color=colors["halo"], alpha=0.35)
     observed_renderer = p.line(
         "x", "y", source=obs_src,
