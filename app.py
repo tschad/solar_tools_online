@@ -6,7 +6,6 @@ import streamlit as st
 from bokeh.models import HoverTool, ColumnDataSource, BoxZoomTool, PanTool, WheelZoomTool, ResetTool, SaveTool
 from bokeh.plotting import figure
 from streamlit_bokeh import streamlit_bokeh  # pip install streamlit-bokeh
-from streamlit_javascript import st_javascript  # pip install streamlit-javascript
 
 # ----------------------------
 # Page config
