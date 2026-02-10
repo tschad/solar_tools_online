@@ -2,3 +2,5 @@ streamlit==1.54.0
 streamlit-bokeh==3.7.1
 bokeh==3.7.2
 numpy
+astropy
+astroquery
